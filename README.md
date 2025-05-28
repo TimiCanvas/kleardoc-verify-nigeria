@@ -1,73 +1,248 @@
-# Welcome to your Lovable project
 
-## Project info
+# KlearDoc - Nigerian Document Verification Platform
 
-**URL**: https://lovable.dev/projects/67fb26fe-59ac-42a5-a2e1-5b68f9965315
+A comprehensive document verification platform designed specifically for Nigeria, featuring AI-powered OCR, NIMC database integration, and secure institutional verification.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### For Users
+- **Secure Authentication**: User registration and login system
+- **Document Upload**: Support for NIN slips, utility bills, and other Nigerian documents
+- **AI-Powered OCR**: Azure AI Vision integration for text extraction
+- **NIMC Verification**: Real-time verification against Nigerian identity database
+- **AI Assistant**: Intelligent feedback and guidance through verification process
+- **Secure Tokens**: Generation of verification tokens for institutional use
 
-**Use Lovable**
+### For Financial Institutions
+- **Token Verification**: Validate user identities using secure tokens
+- **API Integration**: RESTful endpoints for system integration
+- **Verification Levels**: Different tiers of identity verification
+- **Audit Trails**: Complete verification history and logging
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/67fb26fe-59ac-42a5-a2e1-5b68f9965315) and start prompting.
+## 🛠 Technology Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+### Frontend
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **shadcn/ui** components
+- **Lucide React** icons
+- **React Router** for navigation
 
-**Use your preferred IDE**
+### Planned Backend Integration
+- **Azure AI Vision** for OCR processing
+- **Azure OpenAI** for AI assistant
+- **NIMC API** integration
+- **SQLite/Firebase** for data storage
+- **FastAPI** for backend services
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🏗 Architecture
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```
+KlearDoc Platform
+├── User Portal (React/TypeScript)
+│   ├── Authentication System
+│   ├── Document Upload & OCR
+│   ├── AI Assistant Integration
+│   └── Verification Dashboard
+│
+├── Institution Portal
+│   ├── Token Verification
+│   ├── API Access
+│   └── Verification Reports
+│
+└── Backend Services (Planned)
+    ├── Azure AI Vision OCR
+    ├── NIMC Database Integration
+    ├── Azure OpenAI Assistant
+    └── Secure Token Management
+```
 
-Follow these steps:
+## 🚦 Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
+- Node.js 18+ and npm
+- Modern web browser
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd kleardoc-verify-nigeria
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Usage
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+#### User Portal (Main Application)
+1. Visit the main application at `/`
+2. Sign up or log in with your credentials
+3. Upload a Nigerian document (NIN slip, utility bill)
+4. Follow the AI-guided verification process
+5. Receive your verification token upon successful verification
 
-**Use GitHub Codespaces**
+#### Institution Portal
+1. Visit `/institutions` for the institutional portal
+2. Enter a verification token to validate user identity
+3. View detailed verification results and metadata
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔧 Configuration
 
-## What technologies are used for this project?
+### Environment Variables (For Production)
+```bash
+# Azure Services
+AZURE_AI_VISION_ENDPOINT=your_endpoint
+AZURE_AI_VISION_KEY=your_key
+AZURE_OPENAI_ENDPOINT=your_endpoint
+AZURE_OPENAI_KEY=your_key
 
-This project is built with:
+# NIMC Integration
+NIMC_API_ENDPOINT=your_endpoint
+NIMC_API_KEY=your_key
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Database
+DATABASE_URL=your_database_url
 
-## How can I deploy this project?
+# Security
+JWT_SECRET=your_jwt_secret
+TOKEN_ENCRYPTION_KEY=your_encryption_key
+```
 
-Simply open [Lovable](https://lovable.dev/projects/67fb26fe-59ac-42a5-a2e1-5b68f9965315) and click on Share -> Publish.
+## 📱 User Experience Flow
 
-## Can I connect a custom domain to my Lovable project?
+### Document Verification Process
+1. **Upload**: User uploads Nigerian document
+2. **OCR Processing**: Azure AI Vision extracts text
+3. **AI Analysis**: OpenAI validates and provides feedback
+4. **NIMC Verification**: Cross-check with government database
+5. **Token Generation**: Create secure verification token
+6. **Institutional Access**: Financial institutions verify tokens
 
-Yes, you can!
+### AI Assistant Features
+- Real-time feedback on document quality
+- Guidance for document improvements
+- Status updates throughout verification
+- Natural language explanations of issues
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔒 Security Features
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Secure Token Generation**: UUID-based verification tokens
+- **Data Encryption**: All sensitive data encrypted at rest
+- **Rate Limiting**: API protection against abuse
+- **Audit Logging**: Complete verification trail
+- **Privacy Protection**: Minimal data exposure to institutions
+
+## 🌍 Nigerian Market Focus
+
+### Supported Documents
+- **National Identity Number (NIN) Slips**
+- **Utility Bills** (NEPA, Water, etc.)
+- **Bank Statements**
+- **Voter Registration Cards**
+- **Driver's Licenses**
+
+### Language Support
+- English (primary)
+- Nigerian Pidgin
+- Yoruba
+- Hausa
+- Igbo
+
+## 📊 Verification Levels
+
+### Level 1 - Basic Verification
+- Utility bills and basic documents
+- OCR extraction and basic validation
+- Suitable for low-risk transactions
+
+### Level 2 - Government ID Verification
+- NIN slip verification with NIMC database
+- High confidence AI validation
+- Suitable for financial services and high-value transactions
+
+## 🔌 API Integration
+
+### Institution API Endpoints
+```bash
+# Verify a token
+POST /api/verify-token
+{
+  "token": "klr-xxxxxxxxx"
+}
+
+# Response
+{
+  "status": "verified",
+  "user": {
+    "fullName": "JOHN ADEBAYO DOE",
+    "ninNumber": "12345***901",
+    "verificationLevel": "Level 2 - Government ID"
+  },
+  "metadata": {
+    "confidence": 95.8,
+    "verifiedAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+## 🚀 Deployment
+
+### Development
+```bash
+npm run dev
+```
+
+### Production Build
+```bash
+npm run build
+npm run preview
+```
+
+### Cloud Deployment
+- **Vercel/Netlify**: Frontend deployment
+- **Azure App Service**: Full-stack deployment
+- **Supabase**: Database and authentication
+- **Azure Functions**: Serverless backend
+
+## 📈 Future Enhancements
+
+- **Mobile App**: React Native application
+- **Blockchain Integration**: Immutable verification records
+- **Multi-factor Authentication**: Enhanced security
+- **Machine Learning**: Fraud detection algorithms
+- **Biometric Verification**: Facial recognition integration
+- **API Marketplace**: Third-party integrations
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Support
+
+For technical support or business inquiries:
+- Email: support@kleardoc.com
+- Documentation: [docs.kleardoc.com](https://docs.kleardoc.com)
+- API Support: api-support@kleardoc.com
+
+## 🏆 Acknowledgments
+
+- **Azure AI Services** for OCR and AI capabilities
+- **NIMC** for identity verification infrastructure
+- **shadcn/ui** for beautiful UI components
+- **Nigerian Fintech Community** for feedback and requirements
+
+---
+
+**KlearDoc** - Securing Nigeria's Digital Identity Future 🇳🇬
