@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,9 @@ import {
   Users,
   Camera,
   Database,
-  Zap
+  Zap,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +28,7 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('login');
+  const [selectedDocumentType, setSelectedDocumentType] = useState(null);
   const [verificationStep, setVerificationStep] = useState(1);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [ocrData, setOcrData] = useState(null);
@@ -59,25 +61,44 @@ const Index = () => {
   };
 
   // Mock file upload and OCR processing
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadedFile(file);
+      setSelectedDocumentType(documentType);
       setVerificationStep(2);
       
-      // Simulate OCR processing
+      // Simulate OCR processing with different data based on document type
       setTimeout(() => {
-        const mockOcrData = {
-          fullName: "JOHN ADEBAYO DOE",
-          ninNumber: "12345678901",
-          dateOfBirth: "15/03/1990",
-          address: "123 VICTORIA ISLAND, LAGOS STATE",
-          confidence: 0.95,
-          rawText: "FEDERAL REPUBLIC OF NIGERIA\nNATIONAL IDENTITY MANAGEMENT COMMISSION\nNATIONAL IDENTITY NUMBER: 12345678901\nSURNAME: DOE\nFIRST NAME: JOHN\nMIDDLE NAME: ADEBAYO\nDATE OF BIRTH: 15/03/1990\nADDRESS: 123 VICTORIA ISLAND, LAGOS STATE"
-        };
+        let mockOcrData;
+        
+        if (documentType === 'nin') {
+          mockOcrData = {
+            fullName: "JOHN ADEBAYO DOE",
+            ninNumber: "12345678901",
+            dateOfBirth: "15/03/1990",
+            address: "123 VICTORIA ISLAND, LAGOS STATE",
+            confidence: 0.95,
+            documentType: "NIN Slip",
+            rawText: "FEDERAL REPUBLIC OF NIGERIA\nNATIONAL IDENTITY MANAGEMENT COMMISSION\nNATIONAL IDENTITY NUMBER: 12345678901\nSURNAME: DOE\nFIRST NAME: JOHN\nMIDDLE NAME: ADEBAYO\nDATE OF BIRTH: 15/03/1990\nADDRESS: 123 VICTORIA ISLAND, LAGOS STATE"
+          };
+        } else {
+          mockOcrData = {
+            fullName: "JOHN ADEBAYO DOE",
+            address: "123 VICTORIA ISLAND, LAGOS STATE",
+            billType: "ELECTRICITY BILL",
+            provider: "EKEDC",
+            billDate: "DECEMBER 2024",
+            accountNumber: "ACC123456789",
+            confidence: 0.92,
+            documentType: "Utility Bill",
+            rawText: "EKEDC - ELECTRICITY BILL\nCustomer Name: JOHN ADEBAYO DOE\nAddress: 123 VICTORIA ISLAND, LAGOS STATE\nAccount Number: ACC123456789\nBill Period: DECEMBER 2024\nAmount Due: ₦15,000"
+          };
+        }
+        
         setOcrData(mockOcrData);
         setVerificationStep(3);
-        setAiMessage("I've successfully extracted your information from the NIN slip. The text quality is excellent with 95% confidence. Let me now verify this with the NIMC database...");
+        setAiMessage(`I've successfully extracted your information from the ${documentType === 'nin' ? 'NIN slip' : 'utility bill'}. The text quality is excellent with ${(mockOcrData.confidence * 100).toFixed(1)}% confidence. Let me now verify this information...`);
       }, 2000);
     }
   };
@@ -93,13 +114,23 @@ const Index = () => {
         setVerificationStatus('approved');
         const token = `klr-${Math.random().toString(36).substr(2, 12)}`;
         setVerificationToken(token);
-        setAiMessage("🎉 Excellent! Your identity has been successfully verified against the NIMC database. All information matches perfectly. Your verification token has been generated and is ready for use by financial institutions.");
+        setAiMessage("🎉 Excellent! Your identity has been successfully verified. All information matches perfectly. Your verification token has been generated and is ready for use by financial institutions.");
       } else {
         setVerificationStatus('rejected');
-        setAiMessage("❌ I found some discrepancies in your document. The name format doesn't match our records exactly. Please ensure your document is clear and try uploading a newer copy of your NIN slip.");
+        setAiMessage("❌ I found some discrepancies in your document. Please ensure your document is clear and try uploading a newer copy.");
       }
       setVerificationStep(5);
     }, 3000);
+  };
+
+  const resetVerification = () => {
+    setSelectedDocumentType(null);
+    setVerificationStep(1);
+    setUploadedFile(null);
+    setOcrData(null);
+    setVerificationStatus(null);
+    setAiMessage('');
+    setVerificationToken('');
   };
 
   // Authentication UI
@@ -164,29 +195,22 @@ const Index = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Verification Process */}
+          {/* Document Selection & Verification */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Document Verification</span>
-                </CardTitle>
-                <CardDescription>
-                  Upload your Nigerian documents for secure verification
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <VerificationFlow 
-                  step={verificationStep}
-                  onFileUpload={handleFileUpload}
-                  onVerify={handleNimcVerification}
-                  ocrData={ocrData}
-                  verificationStatus={verificationStatus}
-                  token={verificationToken}
-                />
-              </CardContent>
-            </Card>
+            {!selectedDocumentType ? (
+              <DocumentTypeSelection onSelect={setSelectedDocumentType} />
+            ) : (
+              <VerificationFlow 
+                documentType={selectedDocumentType}
+                step={verificationStep}
+                onFileUpload={handleFileUpload}
+                onVerify={handleNimcVerification}
+                onReset={resetVerification}
+                ocrData={ocrData}
+                verificationStatus={verificationStatus}
+                token={verificationToken}
+              />
+            )}
           </div>
 
           {/* AI Assistant & Info */}
@@ -202,7 +226,7 @@ const Index = () => {
               <CardContent>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    {aiMessage || "Hello! I'm your AI verification assistant. Upload a document to get started, and I'll guide you through the process."}
+                    {aiMessage || "Hello! I'm your AI verification assistant. Select a document type to get started, and I'll guide you through the process."}
                   </p>
                 </div>
               </CardContent>
@@ -244,6 +268,70 @@ const Index = () => {
 
   return isLoggedIn ? <Dashboard /> : <AuthenticationUI />;
 };
+
+// Document Type Selection Component
+const DocumentTypeSelection = ({ onSelect }: { onSelect: (type: string) => void }) => (
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">Select Document Type</h2>
+      <p className="text-gray-600">Choose the type of Nigerian document you want to verify</p>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* NIN Documents */}
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onSelect('nin')}>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-3">
+            <CreditCard className="h-6 w-6 text-green-600" />
+            <span>National Identity Number (NIN)</span>
+          </CardTitle>
+          <CardDescription>
+            Upload your NIN slip for government ID verification
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="text-sm text-gray-600">
+              <strong>Supported formats:</strong> JPG, PNG, PDF
+            </div>
+            <div className="text-sm text-gray-600">
+              <strong>Verification level:</strong> Level 2 - Government ID
+            </div>
+            <Button className="w-full bg-green-600 hover:bg-green-700">
+              Select NIN Verification
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Utility Bills */}
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onSelect('utility')}>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-3">
+            <Receipt className="h-6 w-6 text-blue-600" />
+            <span>Utility Bills</span>
+          </CardTitle>
+          <CardDescription>
+            Upload electricity, water, or gas bills for address verification
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="text-sm text-gray-600">
+              <strong>Supported:</strong> NEPA, EKEDC, Water Corporation bills
+            </div>
+            <div className="text-sm text-gray-600">
+              <strong>Verification level:</strong> Level 1 - Address Verification
+            </div>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              Select Utility Bill
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
 
 // Login Form Component
 const LoginForm = ({ onLogin }: { onLogin: (email: string, password: string) => void }) => {
@@ -329,123 +417,151 @@ const SignupForm = ({ onSignup }: { onSignup: (name: string, email: string, pass
   );
 };
 
-// Verification Flow Component
+// Updated Verification Flow Component
 const VerificationFlow = ({ 
+  documentType,
   step, 
   onFileUpload, 
   onVerify, 
+  onReset,
   ocrData, 
   verificationStatus, 
   token 
 }: any) => {
+  const documentTitle = documentType === 'nin' ? 'NIN Slip' : 'Utility Bill';
+  const documentIcon = documentType === 'nin' ? CreditCard : Receipt;
+  const IconComponent = documentIcon;
+
   return (
-    <div className="space-y-6">
-      {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Verification Progress</span>
-          <span>{Math.min(step * 20, 100)}%</span>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2">
+            <IconComponent className="h-5 w-5" />
+            <span>{documentTitle} Verification</span>
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={onReset}>
+            Change Document Type
+          </Button>
         </div>
-        <Progress value={Math.min(step * 20, 100)} className="h-2" />
-      </div>
-
-      {/* Step Content */}
-      {step === 1 && (
-        <div className="text-center space-y-4">
-          <Upload className="h-16 w-16 text-gray-400 mx-auto" />
-          <div>
-            <h3 className="text-lg font-semibold">Upload Your Document</h3>
-            <p className="text-gray-600">Supported: NIN Slip, Utility Bills</p>
-          </div>
-          <div>
-            <Label htmlFor="file-upload" className="sr-only">Choose file</Label>
-            <Input 
-              id="file-upload"
-              type="file" 
-              accept="image/*,.pdf"
-              onChange={onFileUpload}
-              className="file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700"
-            />
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-16 w-16 border-4 border-green-200 border-t-green-600 rounded-full mx-auto"></div>
-          <div>
-            <h3 className="text-lg font-semibold">Processing Document...</h3>
-            <p className="text-gray-600">Extracting information using Azure AI Vision</p>
-          </div>
-        </div>
-      )}
-
-      {step >= 3 && ocrData && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Extracted Information</h3>
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-            <div><strong>Full Name:</strong> {ocrData.fullName}</div>
-            <div><strong>NIN Number:</strong> {ocrData.ninNumber}</div>
-            <div><strong>Date of Birth:</strong> {ocrData.dateOfBirth}</div>
-            <div><strong>Address:</strong> {ocrData.address}</div>
-            <div className="flex items-center space-x-2">
-              <strong>Confidence:</strong> 
-              <Badge variant="outline" className="text-green-700">
-                {(ocrData.confidence * 100).toFixed(1)}%
-              </Badge>
+        <CardDescription>
+          Upload your {documentTitle.toLowerCase()} for verification
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Verification Progress</span>
+              <span>{Math.min(step * 20, 100)}%</span>
             </div>
+            <Progress value={Math.min(step * 20, 100)} className="h-2" />
           </div>
-          
-          {step === 3 && (
-            <Button onClick={onVerify} className="w-full bg-green-600 hover:bg-green-700">
-              Verify with NIMC Database
-            </Button>
+
+          {/* Step Content */}
+          {step === 1 && (
+            <div className="text-center space-y-4">
+              <Upload className="h-16 w-16 text-gray-400 mx-auto" />
+              <div>
+                <h3 className="text-lg font-semibold">Upload Your {documentTitle}</h3>
+                <p className="text-gray-600">Supported formats: JPG, PNG, PDF</p>
+              </div>
+              <div>
+                <Label htmlFor="file-upload" className="sr-only">Choose file</Label>
+                <Input 
+                  id="file-upload"
+                  type="file" 
+                  accept="image/*,.pdf"
+                  onChange={(e) => onFileUpload(e, documentType)}
+                  className="file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700"
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="text-center space-y-4">
+              <div className="animate-spin h-16 w-16 border-4 border-green-200 border-t-green-600 rounded-full mx-auto"></div>
+              <div>
+                <h3 className="text-lg font-semibold">Processing Document...</h3>
+                <p className="text-gray-600">Extracting information using Azure AI Vision</p>
+              </div>
+            </div>
+          )}
+
+          {step >= 3 && ocrData && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Extracted Information</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div><strong>Document Type:</strong> {ocrData.documentType}</div>
+                <div><strong>Full Name:</strong> {ocrData.fullName}</div>
+                {ocrData.ninNumber && <div><strong>NIN Number:</strong> {ocrData.ninNumber}</div>}
+                {ocrData.dateOfBirth && <div><strong>Date of Birth:</strong> {ocrData.dateOfBirth}</div>}
+                <div><strong>Address:</strong> {ocrData.address}</div>
+                {ocrData.billType && <div><strong>Bill Type:</strong> {ocrData.billType}</div>}
+                {ocrData.provider && <div><strong>Provider:</strong> {ocrData.provider}</div>}
+                {ocrData.accountNumber && <div><strong>Account Number:</strong> {ocrData.accountNumber}</div>}
+                <div className="flex items-center space-x-2">
+                  <strong>Confidence:</strong> 
+                  <Badge variant="outline" className="text-green-700">
+                    {(ocrData.confidence * 100).toFixed(1)}%
+                  </Badge>
+                </div>
+              </div>
+              
+              {step === 3 && (
+                <Button onClick={onVerify} className="w-full bg-green-600 hover:bg-green-700">
+                  Verify Information
+                </Button>
+              )}
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="text-center space-y-4">
+              <div className="animate-spin h-16 w-16 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto"></div>
+              <div>
+                <h3 className="text-lg font-semibold">Verifying Information...</h3>
+                <p className="text-gray-600">Cross-checking your information</p>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && verificationStatus && (
+            <div className="space-y-4">
+              {verificationStatus === 'approved' ? (
+                <Alert className="border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    <strong>Verification Successful!</strong>
+                    <div className="mt-2 space-y-2">
+                      <div>Your verification token:</div>
+                      <div className="font-mono text-sm bg-white p-2 rounded border">
+                        {token}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Financial institutions can use this token to verify your identity.
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    <strong>Verification Failed</strong>
+                    <div className="mt-2">
+                      Please check your document and try again.
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
           )}
         </div>
-      )}
-
-      {step === 4 && (
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-16 w-16 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto"></div>
-          <div>
-            <h3 className="text-lg font-semibold">Verifying with NIMC...</h3>
-            <p className="text-gray-600">Cross-checking your information</p>
-          </div>
-        </div>
-      )}
-
-      {step === 5 && verificationStatus && (
-        <div className="space-y-4">
-          {verificationStatus === 'approved' ? (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                <strong>Verification Successful!</strong>
-                <div className="mt-2 space-y-2">
-                  <div>Your verification token:</div>
-                  <div className="font-mono text-sm bg-white p-2 rounded border">
-                    {token}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    Financial institutions can use this token to verify your identity.
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
-                <strong>Verification Failed</strong>
-                <div className="mt-2">
-                  Please check your document and try again.
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
